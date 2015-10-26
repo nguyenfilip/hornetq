@@ -10,6 +10,7 @@
 	    </layout>
 	</appender>
  
+ 
  	<logger name="org.hornetq">
 		<level value="INFO" />
 		<appender-ref ref="console" />

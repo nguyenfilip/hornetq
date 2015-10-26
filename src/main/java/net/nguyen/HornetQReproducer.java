@@ -66,7 +66,7 @@ public class HornetQReproducer {
         
         byte[] bytes = new byte[50 * 1024];
         
-        for (long i = 0; i < 550; i++) {
+        for (long i = 0; i < 5500; i++) {
             ClientMessage message = session.createMessage(true);
             message.getBodyBuffer().writeBytes(bytes);
             
@@ -119,11 +119,11 @@ public class HornetQReproducer {
         if (enablePaging){
             Map<String, AddressSettings> settings = new HashMap<String, AddressSettings>();
             AddressSettings pagingConfig = new AddressSettings();
-            pagingConfig.setMaxSizeBytes(10000l);
-            pagingConfig.setPageSizeBytes(1000l);
+            pagingConfig.setMaxSizeBytes(1024*1024*6);
+            pagingConfig.setPageSizeBytes(1024*1024*2);
             pagingConfig
                     .setAddressFullMessagePolicy(AddressFullMessagePolicy.PAGE);
-            settings.put(PAGING_QUEUE_NAME, pagingConfig);
+            settings.put("#", pagingConfig);
             config.setAddressesSettings(settings);
         }
         return config;

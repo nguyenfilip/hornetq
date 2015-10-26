@@ -1,8 +1,10 @@
 package net.nguyen.journal.inspect;
 
-import java.math.BigInteger;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -18,10 +20,11 @@ public class CandlepinJournalStatisticsBuilder {
             .getLogger(CandlepinJournalStatisticsBuilder.class);
 
   
-    private BigInteger eventCount = BigInteger.ZERO;
+    private CandlepinJournalStats stats = new CandlepinJournalStats();
+    
     
     public CandlepinJournalStats getJournalStatistics() {
-        return new CandlepinJournalStats(eventCount);
+        return stats;
     }
 
     /**
@@ -29,8 +32,15 @@ public class CandlepinJournalStatisticsBuilder {
      * @param json Event in JSON format in java.util.Map
      */
     public void addEvent(Map json) {
-        eventCount = eventCount.add(BigInteger.ONE);
-        log.info(json);
+        stats.incEventCount();
+        EventType eventType= new EventType((String)json.get("type"),(String)json.get("target"));
+        stats.incEventType(eventType);
+        stats.incEventTypeSize(eventType, json.toString().length());
     }
+
+    public void reportMessageError(long id) {
+        stats.incErroredMessages();
+    }
+    
 
 }

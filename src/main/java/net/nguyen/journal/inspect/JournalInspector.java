@@ -28,19 +28,13 @@ public class JournalInspector {
     @Autowired
     private AddRecordReader addRecordHandler;
     
+    @Autowired
+    private JournalInspectorConfiguration config;
     
 
-    public void inspectCpDataJournal(File dataJournalDir) throws Exception {
-        inspectJournal(dataJournalDir.getAbsolutePath(), "hornetq-data", "hq",
+    public void inspect() throws Exception {
+        inspectJournal(config.getJournalsPath().toString(), "hornetq-data", "hq",
                 2, 10485760);
-    }
-
-    public void inspectDataJournal(File dataJournalDir) throws Exception {
-        inspectJournal("journal", "hornetq-data", "hq", 2, 10485760);
-    }
-
-    public void inspectBindingsJournal(File dataJournalDir) throws Exception {
-        inspectJournal("bindings", "hornetq-bindings", "bindings", 2, 1048576);
     }
 
     private void inspectJournal(final String directory,

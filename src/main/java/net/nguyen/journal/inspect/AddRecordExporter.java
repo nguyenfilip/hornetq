@@ -1,26 +1,22 @@
 package net.nguyen.journal.inspect;
 
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.util.Map;
-
+import org.apache.commons.io.FileUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 
-public class Main {
+public class AddRecordExporter {
     private static AddRecordReader addRecordHandler = new AddRecordReader();
 
     public static void main(String args[]) throws Exception {
-
+        Long messageToExport=36507419216l;
+        String outputPath = "/home/fnguyen/candlepin/hornet/lutz/message.json";
         ApplicationContext context = new AnnotationConfigApplicationContext(
                 Config.class);
-        context.getBean(JournalInspector.class).inspect();
-        CandlepinJournalStats statistics = context
-                .getBean(CandlepinJournalStatisticsBuilder.class)
-                .getJournalStatistics();
-        System.out.println(statistics);
+        LargeMessageReader lmr = context.getBean(LargeMessageReader.class);
+        
+        FileUtils.writeStringToFile(new File(outputPath),lmr.readJsonInsideFile(messageToExport));
     }
 
 }

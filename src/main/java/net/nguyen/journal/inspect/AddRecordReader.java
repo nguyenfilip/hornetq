@@ -1,10 +1,13 @@
 package net.nguyen.journal.inspect;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.HornetQBuffers;
 import org.hornetq.core.journal.RecordInfo;
+import org.hornetq.core.persistence.impl.journal.JournalRecordIds;
 import org.hornetq.core.server.impl.ServerMessageImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,12 +30,31 @@ public class AddRecordReader {
 
     @Autowired
     private CandlepinJournalStatisticsBuilder statsBuilder;
-    
+
+    @Autowired
+    private LargeMessageReader largeMessageReader;
+
     public void handle(RecordInfo recordInfo) {
-        ServerMessageImpl serverMessage = new ServerMessageImpl(1l, 50);
-        serverMessage.decode(HornetQBuffers.wrappedBuffer(recordInfo.data));
-        String json = serverMessage.getBodyBuffer().readString();
-//        log.info(json);
+        String json = null;
+        switch (recordInfo.getUserRecordType()) {
+        case JournalRecordIds.ADD_MESSAGE:
+            json = parseBytes(recordInfo.id, recordInfo.data);
+            break;
+        case JournalRecordIds.ADD_LARGE_MESSAGE:
+            try {
+                json = largeMessageReader.readJsonInsideFile(recordInfo.id);
+            }
+            catch (IllegalArgumentException ex){
+                statsBuilder.reportMessageError(recordInfo.id);
+                return;
+            }
+            break;
+        default:
+            statsBuilder.reportMessageError(recordInfo.id);
+            return;
+
+        }
+
         Map map;
         try {
             map = objectMapper.readValue(json, Map.class);
@@ -42,6 +64,12 @@ public class AddRecordReader {
 
         statsBuilder.addEvent(map);
 
+    }
+
+    public String parseBytes(long id, byte[] data) {
+        ServerMessageImpl serverMessage = new ServerMessageImpl(id, 50);
+        serverMessage.decode(HornetQBuffers.wrappedBuffer(data));
+        return serverMessage.getBodyBuffer().readString();
     }
 
 }
